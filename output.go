@@ -2,40 +2,36 @@ package main
 
 import "C"
 import (
+	"context"
 	"fmt"
-	"github.com/fluent/fluent-bit-go/output"
-	"log"
-	"unsafe"
+	"github.com/calyptia/plugin"
 )
+
+func init() {
+	plugin.RegisterOutput(pluginName, fmt.Sprintf("%s output plugin %s", pluginName, version), &mysql{})
+}
 
 var (
 	pluginName = "mysql"
 	version    = "dev-version"
 )
 
-//export FLBPluginRegister
-func FLBPluginRegister(def unsafe.Pointer) int {
-	return output.FLBPluginRegister(def, "mysql", fmt.Sprintf("%s output plugin %s", pluginName, version))
+type mysql struct {
+	log plugin.Logger
 }
 
-//export FLBPluginInit
-func FLBPluginInit(plugin unsafe.Pointer) int {
-	standardFields := []string{"Host", "Database", "Table", "User", "Password", "Port", "MinPoolSize", "MaxPoolSize", "Async"}
+func (m *mysql) Init(ctx context.Context, fbit *plugin.Fluentbit) error {
+	m.log = fbit.Logger
+	standardFields := []string{"Address", "Database", "Table", "User", "Password", "MinPoolSize", "MaxPoolSize", "Async"}
 	for _, field := range standardFields {
-		key := output.FLBPluginConfigKey(plugin, field)
-		log.Printf("[info] [mysql] Key: %s, Value: %s\n", field, key)
+		key := fbit.Conf.String(field)
+		m.log.Info("key: %s, value: %s", field, key)
 	}
-	return output.FLB_OK
+	return nil
 }
 
-//export FLBPluginFlush
-func FLBPluginFlush(data unsafe.Pointer, length C.int, tag *C.char) int {
-	return output.FLB_OK
-}
-
-//export FLBPluginExit
-func FLBPluginExit() int {
-	return output.FLB_OK
+func (m *mysql) Flush(ctx context.Context, ch <-chan plugin.Message) error {
+	return nil
 }
 
 func main() {
