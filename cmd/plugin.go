@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-
 	fb "github.com/calyptia/plugin"
 
 	"github.com/gabrielbussolo/fluent-bit-mysql-output-plugin/internal"
@@ -38,7 +38,14 @@ func (p *plugin) Init(ctx context.Context, fb *fb.Fluentbit) error {
 
 func (p *plugin) Flush(ctx context.Context, ch <-chan fb.Message) error {
 	for msg := range ch {
-		p.log.Info("message: %s", msg)
+		marshal, err := json.Marshal(msg.Record)
+		if err != nil {
+			p.log.Error("could not marshal record: %v", err)
+		}
+		err = p.mysql.Write(ctx, msg.Time, msg.Tag(), marshal)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

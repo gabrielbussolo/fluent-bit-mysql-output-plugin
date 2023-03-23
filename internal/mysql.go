@@ -4,26 +4,32 @@ import (
 	"context"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
 
 type Mysql struct {
-	dsn   string
-	table string
+	stmt *sql.Stmt
 }
 
 func New(dsn, table string) (*Mysql, error) {
-	_, err := sql.Open("mysql", dsn)
+	conn, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	stmt, err := conn.Prepare("INSERT INTO " + table + " (datetime, tag, data) VALUES (?, ?, ?)")
 	if err != nil {
 		return nil, err
 	}
 	return &Mysql{
-		dsn:   dsn,
-		table: table,
+		stmt: stmt,
 	}, nil
 }
 
-func (m *Mysql) Write(ctx context.Context, time, tag, data string) error {
-	// TODO
+func (m *Mysql) Write(ctx context.Context, time time.Time, tag string, data []byte) error {
+	_, err := m.stmt.ExecContext(ctx, time, tag, data)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
