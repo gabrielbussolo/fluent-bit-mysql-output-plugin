@@ -18,13 +18,13 @@ COPY ./go.sum ./
 RUN go mod download
 RUN go mod verify
 
-COPY *.go ./
+COPY . .
 
 ADD https://github.com/fluent/cmetrics/releases/download/${CMETRICS_RELEASE}/cmetrics_${CMETRICS_VERSION}_${PACKAGEARCH}-headers.deb external/
 ADD https://github.com/fluent/cmetrics/releases/download/${CMETRICS_RELEASE}/cmetrics_${CMETRICS_VERSION}_${PACKAGEARCH}.deb external/
 RUN dpkg -i external/*.deb
 
-RUN go build -trimpath -buildmode=c-shared -o mysql-output-plugin.so
+RUN go build -trimpath -buildmode=c-shared -o mysql-output-plugin.so ./cmd/plugin.go
 
 FROM fluent/fluent-bit
 

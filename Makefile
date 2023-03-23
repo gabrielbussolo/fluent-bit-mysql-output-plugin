@@ -23,4 +23,7 @@ container:
 	docker build --progress=plain --platform linux/amd64  -t fluent-bit-mysql .
 
 container-run:
-	docker run -it --rm --name fluent-bit-mysql fluent-bit-mysql
+	docker run -it --rm --network mysql-plugin --name fluent-bit-mysql fluent-bit-mysql
+
+run-mysql:
+	docker run --name some-mysql --network mysql-plugin -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql
