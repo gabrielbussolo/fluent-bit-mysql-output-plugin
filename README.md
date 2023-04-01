@@ -64,3 +64,4 @@ create table fluent_bit.test
 - [ ] Add support to create a default table if it doesn't exist
 - [ ] Support async writes
 - [ ] Add options for the connection pool
+- [ ] Implement CI/CD
